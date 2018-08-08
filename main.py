@@ -10,17 +10,51 @@ import logging
 import random
 import urllib2
 
-def get_logger(application_name, log_level=1):
+def get_logger(application_name, log_level=1, formatter="graylog"):
     logger = logging.getLogger(application_name)
     logger.setLevel(level=log_level)
 
     handler_stream = logging.StreamHandler()
-    handler_stream.formatter = GraylogFormatter()
+    if formatter == "graylog":
+        handler_stream.formatter = GraylogFormatter()
+    else:
+        handler_stream.formatter = InvalidGraylogFormatter()
+
     logger.addHandler(handler_stream)
 
     # only show logs from custom formatter
     logger.propagate = False
     return logger
+
+class InvalidGraylogFormatter(logging.Formatter):
+    def __init__(self):
+        self._host = gethostname()
+        logging.Formatter.__init__(self)
+
+    def format(self, record):
+        log = {'timestamp': time(),
+               'version': '0.1',
+               'host': self._host,
+               'level': self.__get_log_level(record.levelno),
+               'log_type': 'application',
+               'full_message': record.msg}
+
+        extra = record.args
+        # if it is a dict, can be appended
+        if isinstance(extra, dict):
+            log.update(extra)
+        return dumps(log)
+
+    @staticmethod
+    def __get_log_level(levelno):
+        return {
+            logging.INFO: '6',
+            logging.DEBUG: '7',
+            logging.ERROR: '3',
+            logging.WARN: '4',
+            logging.WARNING: '4',
+            logging.CRITICAL: '2'
+        }.get(levelno, '6')
 
 
 class GraylogFormatter(logging.Formatter):
@@ -66,13 +100,15 @@ def get_random_words():
     
 if __name__ == '__main__':
     app_name = "spagi-test" 
-    logger = get_logger(application_name=app_name, log_level=6)
     words = get_random_words()
+
+    graylog_logger = get_logger(formatter="graylog", application_name=app_name, log_level=6)
+    invalid_logger = get_logger(formatter="invalid", application_name="{}-invalid".format(app_name), log_level=6)
 
 
     while True:
-      logger.info("Teste INFO {}".format(random.choice(words)))
-      logger.debug("Teste DEBUG {}".format(random.choice(words)))
+      graylog_logger.info("{}: Valid JSON Fields".format(random.choice(words)))
+      invalid_logger.info("{}: Missing JSON Fields".format(random.choice(words)))
       sleep(5)
 
 
