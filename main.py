@@ -37,7 +37,7 @@ class InvalidGraylogFormatter(logging.Formatter):
                'host': self._host,
                'level': self.__get_log_level(record.levelno),
                'log_type': 'application',
-               'full_message': record.msg}
+               'message': record.msg}
 
         extra = record.args
         # if it is a dict, can be appended
@@ -74,7 +74,8 @@ class GraylogFormatter(logging.Formatter):
                'host': self._host,
                'level': self.__get_log_level(record.levelno),
                'log_type': 'application',
-               'full_message': record.msg}
+               'full_message': record.msg,
+               'short_message': record.msg}
 
         extra = record.args
         # if it is a dict, can be appended
@@ -103,12 +104,13 @@ if __name__ == '__main__':
     words = get_random_words()
 
     graylog_logger = get_logger(formatter="graylog", application_name=app_name, log_level=6)
-    invalid_logger = get_logger(formatter="invalid", application_name="{}-invalid".format(app_name), log_level=6)
+    invalid_logger = get_logger(formatter="invalid", application_name=app_name, log_level=6)
 
-
+    seq = 0
     while True:
-      graylog_logger.info("{}: Valid JSON Fields".format(random.choice(words)))
-      invalid_logger.info("{}: Missing JSON Fields".format(random.choice(words)))
-      sleep(5)
+      seq += 1
+      graylog_logger.info("[{}] {}: Valid JSON Fields".format(seq, random.choice(words)))
+      invalid_logger.info("[{}] {}: Missing JSON Fields".format(seq, random.choice(words)))
+      sleep(1)
 
 

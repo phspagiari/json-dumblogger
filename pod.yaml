@@ -5,6 +5,10 @@ metadata:
     app: dumblogger
   name: dumblogger
 spec:
+  initContainers:
+  - name: check-pod-ready
+    image: bitnami/kubectl:1.11
+    command: ['get pods -n kube-system']
   containers:
   - env:
     - name: ENV
@@ -13,6 +17,6 @@ spec:
       value: "dumblogger"
     - name: PRODUCT
       value: "platform"
-    image: spagiari/json-dumblogger:latest 
+    image: spagiari/json-dumblogger:latest
     imagePullPolicy: Always
     name: dumblogger
