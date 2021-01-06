@@ -95,7 +95,7 @@ class GraylogFormatter(logging.Formatter):
         }.get(levelno, '6')
 
 def get_random_words():
-    response = urllib2.urlopen("http://svnweb.freebsd.org/csrg/share/dict/words?view=co&content-type=text/plain")
+    response = urllib2.urlopen("https://svnweb.freebsd.org/csrg/share/dict/words?view=co&content-type=text/plain")
     txt = response.read()
     return txt.splitlines()
     
